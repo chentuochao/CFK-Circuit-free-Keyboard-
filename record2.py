@@ -19,7 +19,7 @@ RESPEAKER_WIDTH = args.width # run getDeviceInfo.py to get index
 RESPEAKER_INDEX = args.device  # refer to input device id
 CHUNK = args.length
 RECORD_SECONDS = 5
-WAVE_OUTPUT_FILENAME = "output.wav"
+#WAVE_OUTPUT_FILENAME = "output.wav"
 
 p = pyaudio.PyAudio()
 stream = p.open(
@@ -48,13 +48,15 @@ def decode(data):  # return four channel
 
 def main():
     frame = []
-    for i in range(0,500):
+    for i in range(0,100):
         data = stream.read(CHUNK)
         decode(data)
         frame.append(data)
     stream.stop_stream()
     stream.close()
     p.terminate()
+    WAVE_OUTPUT_FILENAME = r"./raw/Key"+str(time.time())+".wav"
+    W#AVE_OUTPUT_FILENAME = WAVE_OUTPUT_FILENAME.replace('.','_')
     save_file(WAVE_OUTPUT_FILENAME, frame)
 
 main()
