@@ -1,4 +1,4 @@
-WebGUI中为数据采集网页
-database提供网页句子的数据集，database_test给出了一个使用实例
-webtest具有简单的和网页交互能力，可以上传数据库中给出的句子，获得网页返回的点击字母。可以用来调试网页功能
-mult_process_web_server是多线程本地服务器，能够支持完整的功能，能够获得tuochao提供的声音数据，正在完成中
+WebGUI中为数据采集网页。
+database提供网页句子的数据集，database_test给出了一个使用实例。
+webtest具有简单的和网页交互能力，可以上传数据库中给出的句子，获得网页返回的点击字母。可以用来调试网页功能。
+mult_process_web_server是多线程本地服务器，能够支持完整的功能，能够获得tuochao提供的声音数据，正在完成中。
