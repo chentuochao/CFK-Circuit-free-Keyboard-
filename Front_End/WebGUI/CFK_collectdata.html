@@ -125,28 +125,31 @@
 				  this.text_area = ''
 				},
 				send: function () {
-				  console.log('send is used')
-				  console.log(this.timesave)
-				  console.log(this.sentencesave.length, this.timesave.length)
+					console.log('send is used')
+					console.log(this.timesave)
+					console.log(this.sentencesave.length, this.timesave.length)
 //todo: 无端输出的空格
-				  websocket.send(JSON.stringify({'input': this.sentencesave, 'time': this.timesave}))
-				  console.log(this.sentencesave.length, this.timesave.length)
-				  app.counter_have_been_uploaded = app.counter_have_been_uploaded + this.sentencesave.length
-				  app.counter--
-				  app.sentencesave.length = 0
-				  app.timesave.length = 0
+					// if (this.sentencesave.length != this.timesave.length){
+					// 	var nothing = this.timesave.shift()
+					// }
+					websocket.send(JSON.stringify({'input': this.sentencesave, 'time': this.timesave}))
+					console.log(this.sentencesave.length, this.timesave.length)
+					app.counter_have_been_uploaded = app.counter_have_been_uploaded + this.sentencesave.length
+					app.counter--
+					app.sentencesave.length = 0
+					app.timesave.length = 0
 
 				},
 			  }
 		});
 	var websocket = new WebSocket("ws://127.0.0.1:6789/");
 	websocket.onmessage = function (event) {
-				data = JSON.parse(event.data)
-				if (data.type == "txt"){
-                console.log(data.count)
-				app.need_input = data.count
-				}
-                }
+		data = JSON.parse(event.data)
+		if (data.type == "txt"){
+		console.log(data.count)
+		app.need_input = data.count
+		}
+	}
 	</script>
 	
 	<!-- Add "scoped" attribute to limit CSS to this component only -->
