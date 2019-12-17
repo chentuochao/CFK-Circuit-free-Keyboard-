@@ -1,6 +1,6 @@
 import wave
 import numpy as np
-import metplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import os
 
 
