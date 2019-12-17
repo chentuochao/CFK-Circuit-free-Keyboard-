@@ -37,15 +37,27 @@ class Phone(object):
     def callback(self, in_data, frame_count, time_info, status):
         if self.recording: 
             self.frame.append(in_data)
+            self.decode(in_data)
             print(status)
         return (in_data, pyaudio.paContinue)
+
+    def get_raw_data(self):
+        return self.raw_data
+    
+    def get_processed_data(self):
+        return self.new_data
+    
+    def get_file_data(self):
+        return self.frame
 
     def begin(self):
         self.recording = 1
     
     def end(self):
         self.recording = 0
-
+        self.clear_frames()
+        self.clear_data()
+    
     def clear_frames(self):
         self.frame = []
         
