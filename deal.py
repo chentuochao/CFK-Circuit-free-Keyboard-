@@ -1,17 +1,20 @@
 import wave
 import numpy as np
 import matplotlib.pyplot as plt
+import librosa
+import librosa.display
 import os
-
-
+import json
+import sys
+from tqdm import tqdm
 #传入wav格式文件和对应键盘的key，输出fft后结果和key
 #<script type="text/javascript" src="/eel.js"></script>
 #  <script type="text/javascript">
-#      eel.dealwith(test.wav,'F');  // 调用Python函数
+#      eel.dealwith(test.wav,test.txt);  // 调用Python函数
 #</script>
-@eel.expose  #Expose this function to js
-def dealwith(video_file_path,key):
-    f=wave.open(video_file_path,"rb")  
+#@eel.expose  #Expose this function to js
+def dealwith(video_file,key_file):
+    f=wave.open(video_file,"rb")  
     params=f.getparams()
     #通道数、采样字节数、采样率、采样帧数
     nchannels,sampwidth,framerate,nframes=params[:4]
@@ -31,6 +34,7 @@ def dealwith(video_file_path,key):
 
     fftdata=np.fft.fft(waveData[0,:])
     fftdata=abs(fftdata)
+    print(type(fftdata))
     hz_axis=np.arange(0,len(fftdata))
     plt.figure()
     plt.plot(hz_axis,fftdata,c='b')
@@ -38,4 +42,63 @@ def dealwith(video_file_path,key):
     plt.ylabel('am')
     plt.show()
 
+def deal(wave_file,key_file):
+    f=open(key_file,"r");
+    line=f.readline()
+    keys=json.loads(line)
+    print(keys)
+    line=f.readline()
+    key_time=json.loads(line)
+    f.close()
+    temp=len(key_time)
+    for i in range(temp-1,0,-1):
+        key_time[i]=key_time[i]-key_time[0]
+    key_time[0]=0
+    print(key_time)
+    y,sr=librosa.load(video_file,sr=None)
+    a=y.tolist()
+    b=len(a)
+    f=open("./temp.txt","w")
+    index=1
+    temp=0
+    for i in range(1,b,240):#5ms
+        '''
+        if index<len(key_time) and a[i]-a[i-1]>=0.005 and abs(i/48-key_time[index])<400:
+            print(key_time[index])
+            f.write(str(i)+","+keys[index-1]+"\n")
+            index=index+1
+        '''
+        sum=0
+        for j in range(i,i+240):
+            sum=sum+a[i]**2
+        if index<len(key_time) and sum>=0.01 and i-temp>=300*48:
+            #f.write(str(round(i/48,2))+","+str(sum)+"\n")
+            f.write(str(i)+","+keys[index-1]+"\n")
+            index+=1
+            temp=i
+    f.close()
 
+
+
+
+
+
+
+
+
+
+
+def test(video_file,key_file):
+    y,sr=librosa.load(video_file,sr=None)
+    #S=np.abs(librosa.stft(y))
+    plt.figure()
+    librosa.display.waveplot(y,sr)
+    #plt.colorbar()
+    plt.show()
+
+
+#dealwith("./test.wav",'./test.txt')
+video_file=sys.argv[1]
+key_file=sys.argv[2]
+#test(video_file,key_file)
+deal(video_file,key_file)
