@@ -13,6 +13,7 @@ from tqdm import tqdm
 #      eel.dealwith(test.wav,test.txt);  // 调用Python函数
 #</script>
 #@eel.expose  #Expose this function to js
+'''
 def dealwith(video_file,key_file):
     f=wave.open(video_file,"rb")  
     params=f.getparams()
@@ -41,10 +42,12 @@ def dealwith(video_file,key_file):
     plt.xlabel('hz')
     plt.ylabel('am')
     plt.show()
-
+'''
 def deal(wave_file,key_file):
-    f=open(key_file,"r");
+    f=open(key_file,"r",encoding="utf-8");
     line=f.readline()
+    if line.startswith(u'\ufeff'):
+       line = line.encode('utf8')[3:].decode('utf8')
     keys=json.loads(line)
     print(keys)
     line=f.readline()
@@ -55,30 +58,48 @@ def deal(wave_file,key_file):
         key_time[i]=key_time[i]-key_time[0]
     key_time[0]=0
     print(key_time)
-    y,sr=librosa.load(video_file,sr=None)
-    a=y.tolist()
+    wavdata,wavtime=wavread(wave_file)
+    a=wavdata[0]
     b=len(a)
-    f=open("./temp.txt","w")
+    f=open("./temp.txt","w",encoding="utf-8")
     index=1
     temp=0
-    for i in range(1,b,240):#5ms
+    #plt.figure()
+    #print(wavtime)
+    #plt.plot(wavtime[0:240000], wavdata[0][0:240000],color = 'green')
+    
+    for i in range(0,b,240):#5ms
         '''
-        if index<len(key_time) and a[i]-a[i-1]>=0.005 and abs(i/48-key_time[index])<400:
-            print(key_time[index])
-            f.write(str(i)+","+keys[index-1]+"\n")
-            index=index+1
+        f.write(str(i)+","+str(a[i])+"\n")
+        index=index+1
         '''
+        
         sum=0
         for j in range(i,i+240):
-            sum=sum+a[i]**2
-        if index<len(key_time) and sum>=0.01 and i-temp>=300*48:
+            sum=sum+(a[i]/1000)**2
+        if index<len(key_time) and sum>=40 and i-temp>=240*48:
             #f.write(str(round(i/48,2))+","+str(sum)+"\n")
-            f.write(str(i)+","+keys[index-1]+"\n")
+            f.write(str(round(i/48,2))+","+keys[index]+"\n")
+            #plt.vlines(i/48000,-35000,35000)
             index+=1
             temp=i
+        
+    #plt.show()
+    
     f.close()
 
-
+def wavread(wave_file):
+    wavfile =  wave.open(wave_file,"rb")
+    params = wavfile.getparams()
+    print(params[:4])
+    framesra,frameswav= params[2],params[3]
+    datawav = wavfile.readframes(frameswav)
+    wavfile.close()
+    datause = np.fromstring(datawav,dtype = np.int16)
+    datause.shape = -1,6
+    datause = datause.T
+    time = np.arange(0, frameswav) * (1.0/framesra)
+    return datause,time
 
 
 
@@ -89,12 +110,9 @@ def deal(wave_file,key_file):
 
 
 def test(video_file,key_file):
-    y,sr=librosa.load(video_file,sr=None)
-    #S=np.abs(librosa.stft(y))
-    plt.figure()
-    librosa.display.waveplot(y,sr)
-    #plt.colorbar()
-    plt.show()
+    y=wave.open(video_file)
+    print(y.getnchannels())
+
 
 
 #dealwith("./test.wav",'./test.txt')
