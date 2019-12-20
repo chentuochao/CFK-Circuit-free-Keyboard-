@@ -7,6 +7,7 @@ import os
 import json
 import sys
 from tqdm import tqdm
+import re
 #传入wav格式文件和对应键盘的key，输出fft后结果和key
 #<script type="text/javascript" src="/eel.js"></script>
 #  <script type="text/javascript">
@@ -43,13 +44,17 @@ def dealwith(video_file,key_file):
     plt.ylabel('am')
     plt.show()
 '''
-def deal(wave_file,key_file):
+def deal(wave_file,key_file,result_file):
     f=open(key_file,"r",encoding="utf-8");
     line=f.readline()
+    
     if line.startswith(u'\ufeff'):
        line = line.encode('utf8')[3:].decode('utf8')
+    line=line.replace("'",'"')
+    line=line.replace("\\","")
+    #print(line)
     keys=json.loads(line)
-    print(keys)
+    #print(keys)
     line=f.readline()
     key_time=json.loads(line)
     f.close()
@@ -57,12 +62,12 @@ def deal(wave_file,key_file):
     for i in range(temp-1,0,-1):
         key_time[i]=key_time[i]-key_time[0]
     key_time[0]=0
-    print(key_time)
+    #print(key_time)
     wavdata,wavtime=wavread(wave_file)
     a=wavdata[0]
     b=len(a)
-    f=open("./temp.txt","w",encoding="utf-8")
-    index=1
+    f=open(result_file,"w",encoding="utf-8")
+    index=0
     temp=0
     #plt.figure()
     #print(wavtime)
@@ -77,9 +82,16 @@ def deal(wave_file,key_file):
         sum=0
         for j in range(i,i+240):
             sum=sum+(a[i]/1000)**2
-        if index<len(key_time) and sum>=40 and i-temp>=240*48:
+        if index<len(keys) and sum>=40 and i-temp>=240*48:
             #f.write(str(round(i/48,2))+","+str(sum)+"\n")
-            f.write(str(round(i/48,2))+","+keys[index]+"\n")
+            if keys[index]=="r":
+                keys[index]="enter"
+            if keys[index]==" ":
+                keys[index]="space"
+            if keys[index]=="space" or keys[index]=="enter" or (keys[index]>="A" and keys[index]<="Z"):
+                f.write(str(round(i/48,2))+","+keys[index]+"\n")
+            else:
+                f.write(str(round(i/48,2))+",other\n")
             #plt.vlines(i/48000,-35000,35000)
             index+=1
             temp=i
@@ -91,7 +103,7 @@ def deal(wave_file,key_file):
 def wavread(wave_file):
     wavfile =  wave.open(wave_file,"rb")
     params = wavfile.getparams()
-    print(params[:4])
+    #print(params[:4])
     framesra,frameswav= params[2],params[3]
     datawav = wavfile.readframes(frameswav)
     wavfile.close()
@@ -101,12 +113,20 @@ def wavread(wave_file):
     time = np.arange(0, frameswav) * (1.0/framesra)
     return datause,time
 
-
-
-
-
-
-
+def deal_all(path):
+    filelist=os.listdir(path)
+    wavlist=[]
+    for filename in filelist:
+        filepath=os.path.join(path,filename)
+        if (re.match(".*.wav",filename))!=None:
+            #print(filename)
+            wavlist.append(filepath)
+    for wavfile in tqdm(wavlist):
+        #print(wavfile)
+        m=re.findall(r'(.+?)\.',wavfile)
+        txtfile=m[0]+".txt"
+        resultfile=m[0]+"result.txt"
+        deal(wavfile,txtfile,resultfile)
 
 
 def test(video_file,key_file):
@@ -116,7 +136,9 @@ def test(video_file,key_file):
 
 
 #dealwith("./test.wav",'./test.txt')
-video_file=sys.argv[1]
-key_file=sys.argv[2]
+#video_file=sys.argv[1]
+#key_file=sys.argv[2]
 #test(video_file,key_file)
-deal(video_file,key_file)
+#deal(video_file,key_file)
+path=sys.argv[1]
+deal_all(path)
