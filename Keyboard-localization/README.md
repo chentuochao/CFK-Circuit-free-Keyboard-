@@ -1,5 +1,9 @@
 keyboard localization by laser cutting and computer vision (CV error is -2mm - 2mm)
 
+<p align='center'>
+<img src='board.png' title='images' style='max-width:600px'></img>
+</p>
+
 The process of CV is p1.png -> p2.png -> p3.png
 
 <p align='center'>
