@@ -9,7 +9,7 @@ import os
 #from Microphone import Phone
 import argparse
 
-copy from tuochao
+#copy from tuochao
 parser = argparse.ArgumentParser()
 
 parser.add_argument("-d", "--device", type = int, default = 8, help="decice index of microphone")

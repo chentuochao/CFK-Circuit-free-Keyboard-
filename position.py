@@ -24,12 +24,12 @@ def wavread():
     wavfile =  we.open(fd,"rb")
     params = wavfile.getparams()
     print(params[:4])
-    framesra,frameswav= params[2],params[3]
-    datawav = wavfile.readframes(frameswav)
+    framesra,frameswav= params[2],params[3] #返回采样频率和帧数
+    datawav = wavfile.readframes(frameswav) #返回相应帧数的音频字节
     wavfile.close()
     datause = np.fromstring(datawav,dtype = np.int16)
     datause.shape = -1,6
-    datause = datause.T
+    datause = datause.T #分出六个不同声道的声音
     time = np.arange(0, frameswav) * (1.0/framesra)
     wavfile.close()
 
@@ -44,7 +44,7 @@ def wavread():
         #print(sum1, sum2)
         if sum2 - sum1 > 30:
             begin = i - 300
-            break
+            break   #用于判定是不是一个空音频
 
     return frameswav,datause,time
 
@@ -52,7 +52,7 @@ def wavread():
 def corr(w1, w2):   # the correlation of two sequneces
     f1 = fft(w1)
     f2 = fft(w2)
-    f2g = np.conjugate(f2)
+    f2g = np.conjugate(f2)  #复共轭
     Pw = f1 * f2g
     A = 1/np.abs(Pw)
     result = np.fft.fftshift(ifft(A * Pw))
