@@ -5,11 +5,11 @@ import websockets
 import time
 import database
 import os
-
-#from Microphone import Phone
+from Microphone import Phone
 import argparse
+import psutil
 
-copy from tuochao
+#copy from tuochao
 parser = argparse.ArgumentParser()
 
 parser.add_argument("-d", "--device", type = int, default = 8, help="decice index of microphone")
@@ -38,12 +38,14 @@ STATE = {"value": 0}
 USERS = set()
 
 def writedata(nowtime,data):
-    f = open('.\\keyboard_data\\'+str(nowtime)+'.txt', "a")
+    f = open('./position/'+str(nowtime)+'.txt', "a")
+    #f = open(str(nowtime)+'.txt', "a")
     f.write(str(data['input'])+'\n'+str(data['time']))
     f.close()
 
 def newfile(nowtime):
-    f = open('.\\keyboard_data\\'+ str(nowtime) +'.txt', 'w')
+    f = open('./position/'+ str(nowtime) +'.txt', 'w')
+    #f = open(str(nowtime) +'.txt', 'w')
     f.close()
 
 def state_event():
@@ -60,7 +62,6 @@ def sentence_event():
 async def notify_state():
     if USERS:  # asyncio.wait doesn't accept an empty list
         message = state_event()
-        microphone.begin()
         await asyncio.wait([user.send(message) for user in USERS])
 
 
@@ -82,36 +83,46 @@ async def register(websocket):
 async def unregister(websocket):
     USERS.remove(websocket)
     await notify_users()
-
-
+       
 async def counter(websocket, path):
-    global nowtime
     # register(websocket) sends user_event() to websocket
     await register(websocket)
     try:
         await websocket.send(state_event())
         async for message in websocket:
             data = json.loads(message)
-            microphone.end()
-            microphone.save_file(nowtime+'.wav')
-            writedata(nowtime,data)
+            time.sleep(0.3)
+            microphone.end()    #接受数据，停止麦克风
+
+            nowtime = int(time.time())            
+            #microphone.save_file('./position/'+str(nowtime)+'.wav') 
+            microphone.save_file('./position/output.wav') 
+            newfile(nowtime)
+            writedata(nowtime,data) #储存数据
+
+            microphone.begin()
             await notify_sentence()
 
             print(data)
-            print(time.time())
+            print(nowtime)
             # await notify_state()
     finally:
         await unregister(websocket)
 
 sentences = database.get_sentences()
 rare_dict = database.generate_rare_dict(sentences)
-nowtime = int(time.time())
-print(nowtime)
-newfile(nowtime)
 print('文字数据库加载完成')
+# show processes info
+pids = psutil.pids()
+for pid in pids:
+ p = psutil.Process(pid)
+ # get process name according to pid
+ process_name = p.name()
 
 start_server = websockets.serve(counter, "localhost", 6789)
 
-microphone.begin()
+microphone.begin()  
+print("Process name is: %s, pid is: %s" %(process_name, pid))
 asyncio.get_event_loop().run_until_complete(start_server)
 asyncio.get_event_loop().run_forever()
+
