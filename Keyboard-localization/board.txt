@@ -1,8 +1,0 @@
-(18mm 38mm)
-50mm
-
-Microphone
-(16 16) mm
-(16 63) mm
-(-46 16) mm
-(-46 63) mm
